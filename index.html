@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Xoài Luyện Trí Nhớ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap");
+    *,*::before,*::after{box-sizing:border-box;margin:0;}
+    body{font-family:"Nunito","Segoe UI","Helvetica Neue",Arial,sans-serif;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(0,180,220,.18) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(0,100,180,.14) 0%,transparent 60%),linear-gradient(175deg,#020c14 0%,#040f1a 50%,#010810 100%);min-height:100vh;overflow-x:hidden;touch-action:none;}
+    .ff{font-family:"Fredoka One","Trebuchet MS","Comic Sans MS",cursive;}.title-ff{font-family:"Bangers","Impact","Arial Black",cursive;letter-spacing:.06em;}
+    /* ===== BRICK ===== */
+    .brick{position:relative;border-radius:7px;cursor:grab;user-select:none;-webkit-user-select:none;flex-shrink:0;transition:filter .15s,transform .15s;}
+    .brick:active{cursor:grabbing;}
+    .brick:hover{filter:brightness(1.2);transform:translateY(-3px) scale(1.05);}
+    /* colors = solid back + darker bottom shadow = 3-D look */
+    .cl-red   {background:#e3000b;box-shadow:0 5px 0 #8b0007,0 8px 16px rgba(0,0,0,.45);}
+    .cl-blue  {background:#0057a8;box-shadow:0 5px 0 #003a73,0 8px 16px rgba(0,0,0,.45);}
+    .cl-yellow{background:#f7d117;box-shadow:0 5px 0 #b89800,0 8px 16px rgba(0,0,0,.45);}
+    .cl-green {background:#00a850;box-shadow:0 5px 0 #006b32,0 8px 16px rgba(0,0,0,.45);}
+    .cl-orange{background:#f47b20;box-shadow:0 5px 0 #b85200,0 8px 16px rgba(0,0,0,.45);}
+    .cl-purple{background:#9c27b0;box-shadow:0 5px 0 #6a1278,0 8px 16px rgba(0,0,0,.45);}
+    .cl-cyan  {background:#00aec7;box-shadow:0 5px 0 #007088,0 8px 16px rgba(0,0,0,.45);}
+    .cl-pink  {background:#e91e8c;box-shadow:0 5px 0 #a0006a,0 8px 16px rgba(0,0,0,.45);}
+    .cl-lime  {background:#76c900;box-shadow:0 5px 0 #4e8500,0 8px 16px rgba(0,0,0,.45);}
+    .cl-brown {background:#7b3f00;box-shadow:0 5px 0 #4a2700,0 8px 16px rgba(0,0,0,.45);}
+    .cl-teal  {background:#009688;box-shadow:0 5px 0 #00635b,0 8px 16px rgba(0,0,0,.45);}
+    .cl-navy  {background:#3949ab;box-shadow:0 5px 0 #243080,0 8px 16px rgba(0,0,0,.45);}
+    /* ===== DROP SLOT ===== */
+    .slot{position:absolute;border:2.5px dashed rgba(255,255,255,.3);border-radius:7px;background:rgba(255,255,255,.05);transition:border-color .18s,background .18s,box-shadow .18s;}
+    .slot.over{border-color:#00c8ff;background:rgba(0,200,255,.15);box-shadow:0 0 0 3px rgba(0,200,255,.3);}
+    .slot.done{border-color:transparent;background:transparent;}
+    .slot.ok  {box-shadow:0 0 0 3px #4ade80;border-radius:9px;}
+    .slot.fail{box-shadow:0 0 0 3px #f87171;border-radius:9px;}
+    /* ===== CANVAS ===== */
+    .canvas-wrap{background:rgba(0,20,35,.5);border:2px solid rgba(0,200,255,.2);border-radius:18px;padding:16px;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 0 18px rgba(0,200,255,.08) inset;}
+    #preview-canvas,#build-canvas{position:relative;overflow:visible;}
+    /* ===== SCREENS ===== */
+    .screen{display:none;}.screen.active{display:flex;}
+    /* ===== OVERLAY ===== */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;}
+    .overlay.hidden{display:none;}
+    /* ===== TRAY ===== */
+    #piece-tray{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;padding:16px;background:rgba(0,20,35,.5);border:2px solid rgba(0,200,255,.18);border-radius:18px;min-height:80px;}
+    /* ===== TIMER ===== */
+    .timer-svg circle{transition:stroke-dashoffset 1s linear;}
+    /* ===== PROGRESS DOTS ===== */
+    .dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.2);transition:all .3s;}
+    .dot.done{background:#4ade80;}.dot.current{background:#fbbf24;animation:blink 1s infinite;}
+    /* ===== ROUND PIPS ===== */
+    .rpip{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:rgba(255,255,255,.5);transition:all .3s;}
+    .rpip.done{background:#4ade80;color:#14532d;}.rpip.cur{background:#fbbf24;color:#78350f;animation:blink .9s infinite;}
+    /* ===== LEVEL CARDS ===== */
+    .lv-card{transition:transform .2s,box-shadow .2s;cursor:pointer;text-align:left;}
+    .lv-card:hover{transform:translateY(-5px) scale(1.03);box-shadow:0 0 22px rgba(0,200,255,.4);}.lv-card:active{transform:scale(.97);}
+    /* ===== KEYFRAMES ===== */
+    @keyframes blink    {0%,100%{opacity:1;}50%{opacity:.3;}}
+    @keyframes cfFall   {0%{opacity:1;transform:translateY(0) rotate(0deg);}100%{opacity:0;transform:translateY(110vh) rotate(720deg);}}
+    @keyframes bounceIn {0%{transform:scale(.6);opacity:0;}60%{transform:scale(1.1);}100%{transform:scale(1);opacity:1;}}
+    @keyframes glowGreen{0%,100%{filter:brightness(1);}50%{filter:brightness(1.6) drop-shadow(0 0 10px #4ade80);}}
+    @keyframes wiggle   {0%,100%{transform:translateX(0);}25%{transform:translateX(-7px);}75%{transform:translateX(7px);}}
+    @keyframes shimmer  {0%,100%{opacity:.4;}50%{opacity:1;}}
+    @keyframes starPop  {0%{transform:scale(0) rotate(-30deg);opacity:0;}60%{transform:scale(1.4) rotate(10deg);}100%{transform:scale(1) rotate(0deg);opacity:1;}}
+    @keyframes pulseBtn {0%,100%{box-shadow:0 0 0 0 rgba(0,200,255,.7);}50%{box-shadow:0 0 0 12px rgba(0,200,255,0);}}
+    .anim-bounceIn{animation:bounceIn .45s cubic-bezier(.36,.07,.19,.97);}
+    .anim-ok  {animation:glowGreen .6s ease;}
+    .anim-fail{animation:wiggle .4s ease;}
+    .star{display:inline-block;animation:starPop .4s ease backwards;}
+    .star:nth-child(2){animation-delay:.12s;}.star:nth-child(3){animation-delay:.24s;}
+    .cf{position:fixed;top:-20px;opacity:0;z-index:999;border-radius:3px;animation:cfFall linear forwards;}
+    .btn-pulse{animation:pulseBtn 1.5s infinite;}
+  </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-3 sm:p-4">
+
+<!-- ============ HOME ============ -->
+<div id="screen-home" class="screen active flex-col items-center justify-center w-full max-w-lg mx-auto text-center gap-6">
+  <div class="anim-bounceIn">
+    <div class="text-8xl mb-2 select-none">🤖</div>
+    <h1 class="text-3xl sm:text-4xl title-ff mb-2" style="color:#00d4ff;text-shadow:0 3px 0 #003a50,0 0 30px rgba(0,200,255,.7),0 0 60px rgba(0,180,240,.35)">XOÀI LUYỆN TRÍ NHỚ</h1>
+    <p class="text-white/60 text-base sm:text-lg font-semibold">Ghi nhớ &amp; Lắp lại các mảnh xếp hình!</p>
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+    <button onclick="startLevel('easy')" class="lv-card rounded-2xl p-5 shadow-xl border-2 border-cyan-400/50 bg-gradient-to-br from-cyan-600/15 to-cyan-900/25">
+      <div class="text-4xl mb-3">😊</div>
+      <div class="text-cyan-300 font-black text-xl ff">Dễ</div>
+      <div class="text-white/80 text-sm mt-1 font-bold">6 mảnh · 15 giây</div>
+      <div class="text-white/45 text-xs mt-1">2 gợi ý mỗi ván</div>
+    </button>
+    <button onclick="startLevel('medium')" class="lv-card rounded-2xl p-5 shadow-xl border-2 border-amber-400/50 bg-gradient-to-br from-amber-500/15 to-orange-900/25">
+      <div class="text-4xl mb-3">🤔</div>
+      <div class="text-yellow-300 font-black text-xl ff">Trung Bình</div>
+      <div class="text-white/80 text-sm mt-1 font-bold">8 mảnh · 15 giây</div>
+      <div class="text-white/45 text-xs mt-1">2 gợi ý mỗi ván</div>
+    </button>
+    <button onclick="startLevel('hard')" class="lv-card rounded-2xl p-5 shadow-xl border-2 border-red-500/50 bg-gradient-to-br from-red-700/20 to-red-950/30">
+      <div class="text-4xl mb-3">🔥</div>
+      <div class="text-red-400 font-black text-xl ff">Khó</div>
+      <div class="text-white/80 text-sm mt-1 font-bold">10 mảnh · 15 giây</div>
+      <div class="text-white/45 text-xs mt-1">2 gợi ý mỗi ván</div>
+    </button>
+  </div>
+  <p class="text-white/25 text-xs select-none">Ghi nhớ vị trí · Lắp lại đúng chỗ · Ghi điểm!</p>
+</div>
+
+<!-- ============ PREVIEW ============ -->
+<div id="screen-preview" class="screen flex-col items-center w-full max-w-2xl mx-auto gap-4">
+  <div class="flex items-center justify-between w-full">
+    <button onclick="goHome()" class="text-white/50 hover:text-white transition text-sm font-bold px-1">← Về nhà</button>
+    <div id="badge-prev" class="px-4 py-1.5 rounded-full text-sm font-black ff"></div>
+    <div></div>
+  </div>
+  <div class="text-center">
+    <h2 class="text-white text-2xl font-black ff">👀 Ghi nhớ đi nào!</h2>
+    <p class="text-white/55 text-sm mt-0.5">Nhìn kỹ vị trí các mảnh xếp hình...</p>
+  </div>
+  <div class="flex flex-col items-center gap-3">
+    <div class="relative flex items-center justify-center select-none">
+      <svg class="timer-svg" width="88" height="88" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="10"/>
+        <circle id="timer-arc" cx="50" cy="50" r="42" fill="none" stroke="#00c8ff" stroke-width="10"
+          stroke-linecap="round" stroke-dasharray="263.9" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
+      </svg>
+      <div id="timer-num" class="absolute text-white font-black text-3xl ff">10</div>
+    </div>
+    <button onclick="startBuild()" class="active:scale-95 text-white font-black px-6 py-2.5 rounded-full ff text-base shadow-lg transition" style="background:linear-gradient(135deg,#0096c7,#00c8ff);box-shadow:0 0 20px rgba(0,200,255,.5)">⚡ Lắp ngay!</button>
+  </div>
+  <div class="w-full">
+    <p class="text-white/40 text-xs text-center mb-2 uppercase tracking-widest font-bold">Mô hình cần lắp</p>
+    <div class="canvas-wrap"><div id="preview-canvas"></div></div>
+  </div>
+</div>
+
+<!-- ============ BUILD ============ -->
+<div id="screen-build" class="screen flex-col items-center w-full max-w-2xl mx-auto gap-3">
+  <div class="flex items-center justify-between w-full">
+    <button onclick="goHome()" class="text-white/50 hover:text-white transition text-sm font-bold px-1">← Về nhà</button>
+    <div id="badge-build" class="px-4 py-1.5 rounded-full text-sm font-black ff"></div>
+    <button onclick="checkAnswer()" class="active:scale-95 text-white font-black px-4 py-1.5 rounded-full text-sm ff shadow-lg" style="background:linear-gradient(135deg,#0096c7,#00c8ff);box-shadow:0 0 12px rgba(0,200,255,.4)">✅ Kiểm tra</button>
+  </div>
+  <div class="text-center">
+    <h2 class="text-white text-xl font-black ff">🔨 Lắp lại đi!</h2>
+    <p class="text-white/50 text-xs mt-0.5">Kéo thả mảnh xếp hình vào đúng ô</p>
+  </div>
+  <div class="flex items-center gap-2">
+    <span class="text-white/45 text-xs font-bold uppercase tracking-wider">Tiến độ:</span>
+    <div id="prog-dots" class="flex gap-1.5"></div>
+  </div>
+  <div class="w-full">
+    <p class="text-white/40 text-xs text-center mb-2 uppercase tracking-widest font-bold">Khu vực lắp ráp</p>
+    <div class="canvas-wrap"><div id="build-canvas"></div></div>
+  </div>
+  <div class="w-full">
+    <p class="text-white/40 text-xs text-center mb-2 uppercase tracking-widest font-bold">Các mảnh xếp hình</p>
+    <div id="piece-tray"></div>
+  </div>
+  <button id="hint-btn" onclick="useHint()" class="text-yellow-300/70 hover:text-yellow-300 text-sm font-bold transition underline underline-offset-2 pb-1">
+    💡 Gợi ý
+  </button>
+</div>
+
+<!-- ============ RESULT MODAL ============ -->
+<div id="modal-result" class="overlay hidden">
+  <div class="rounded-3xl p-7 max-w-sm w-full mx-4 text-center shadow-2xl border border-cyan-700/40 anim-bounceIn" style="background:linear-gradient(160deg,#030f1a,#020c16);box-shadow:0 0 40px rgba(0,200,255,.15),0 0 80px rgba(0,100,180,.1);">
+    <div id="ri-emoji" class="text-6xl mb-2 select-none"></div>
+    <h2  id="ri-title" class="text-3xl font-black text-white ff mb-1"></h2>
+    <p   id="ri-msg"   class="text-white/65 text-sm mb-5"></p>
+    <div id="ri-stars" class="flex justify-center gap-2 mb-5"></div>
+    <div class="flex flex-col gap-3">
+      <button onclick="replayLevel()" class="bg-indigo-500/70 hover:bg-indigo-500 active:scale-95 text-white font-bold py-3 rounded-2xl text-sm">🔄 Chơi lại</button>
+      <button onclick="showAnswer()" class="bg-indigo-500/70 hover:bg-indigo-500 active:scale-95 text-white font-bold py-3 rounded-2xl text-sm">👁 Xem đáp án</button>
+      <button onclick="goHome()" class="bg-white/10 hover:bg-white/20 active:scale-95 text-white font-bold py-3 rounded-2xl text-sm">🏠 Về nhà</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ANSWER MODAL ============ -->
+<div id="modal-answer" class="overlay hidden">
+  <div class="rounded-3xl p-5 max-w-lg w-full mx-3 text-center shadow-2xl border border-cyan-700/40 anim-bounceIn" style="background:linear-gradient(160deg,#030f1a,#020c16);box-shadow:0 0 40px rgba(0,200,255,.15),0 0 80px rgba(0,100,180,.1);">
+    <h2 class="text-2xl font-black text-white ff mb-4">👁 So sánh đáp án</h2>
+    <div class="grid grid-cols-2 gap-3 mb-4">
+      <div>
+        <p class="text-white/50 text-xs mb-2 font-bold uppercase tracking-wider">✅ Đáp án đúng</p>
+        <div class="canvas-wrap" style="overflow:hidden;"><div id="answer-correct" style="position:relative;overflow:visible;"></div></div>
+      </div>
+      <div>
+        <p class="text-white/50 text-xs mb-2 font-bold uppercase tracking-wider">🧩 Bạn đã xếp</p>
+        <div class="canvas-wrap" style="overflow:hidden;"><div id="answer-yours" style="position:relative;overflow:visible;"></div></div>
+      </div>
+    </div>
+    <button onclick="closeAnswer()" class="w-full bg-white/10 hover:bg-white/20 active:scale-95 text-white font-bold py-3 rounded-2xl text-sm">✕ Đóng</button>
+  </div>
+</div>
+
+<div id="confetti"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* CONFIG */
+var CFG={
+  easy:  {count:6, time:15,hints:2,label:"Dễ",       badge:"bg-cyan-600/25   text-cyan-300   border border-cyan-400/40"},
+  medium:{count:8, time:15,hints:2,label:"Trung Bình",badge:"bg-yellow-500/30 text-yellow-300 border border-yellow-400/40"},
+  hard:  {count:10,time:15,hints:2,label:"Khó",       badge:"bg-red-500/30    text-red-300    border border-red-400/40"},
+};
+var GCOLS=6,GROWS=5,CIRC=2*Math.PI*42;
+var COLORS=["cl-red","cl-blue","cl-yellow","cl-green","cl-orange","cl-purple","cl-cyan","cl-pink","cl-lime","cl-brown","cl-teal","cl-navy"];
+
+/* STATE */
+var gs={level:"easy",pieces:[],placed:{},snapshot:{},hintsLeft:2,timer:null,timeLeft:15};
+
+/* UTILS */
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+function shuffle(a){var r=[].concat(a);for(var i=r.length-1;i>0;i--){var j=rand(0,i);var t=r[i];r[i]=r[j];r[j]=t;}return r;}
+function cellSize(){var vw=Math.min(window.innerWidth,600),avail=vw-80,cs=Math.floor(avail/GCOLS);return Math.min(Math.max(cs,34),66);}
+function shapeWH(s){return s==="1x1"?[1,1]:s==="1x2"?[2,1]:[2,2];}
+
+/* PIECE GENERATION */
+function generatePieces(count){
+  var pool=["1x1","1x1","1x2","1x2","2x2"],occ={},pieces=[],tries=0;
+  while(pieces.length<count&&tries<4000){
+    tries++;
+    var shape=pick(pool),wh=shapeWH(shape),w=wh[0],h=wh[1];
+    var col=rand(0,GCOLS-w),row=rand(0,GROWS-h),ok=true;
+    for(var dc=0;dc<w&&ok;dc++) for(var dr=0;dr<h&&ok;dr++) if(occ[(col+dc)+"_"+(row+dr)]) ok=false;
+    if(!ok) continue;
+    for(var dc2=0;dc2<w;dc2++) for(var dr2=0;dr2<h;dr2++) occ[(col+dc2)+"_"+(row+dr2)]=1;
+    var recent=pieces.slice(-4).map(function(p){return p.color;}),color,ci=0;
+    do{color=pick(COLORS);ci++;}while(recent.indexOf(color)>=0&&ci<20);
+    pieces.push({id:"p"+pieces.length,shape:shape,color:color,col:col,row:row});
+  }
+  return pieces;
+}
+
+/* MAKE BRICK DOM */
+function makeBrick(piece,cs,drag){
+  var wh=shapeWH(piece.shape),w=wh[0],h=wh[1],bw=w*cs-4,bh=h*cs-4;
+  var el=document.createElement("div");
+  el.className="brick "+piece.color;
+  el.dataset.id=piece.id;
+  el.style.width=bw+"px";el.style.height=bh+"px";
+  return el;
+}
+
+/* SCREENS */
+function showScreen(id){document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("active");});document.getElementById(id).classList.add("active");}
+function setBadge(id,lv){var el=document.getElementById(id);el.textContent=(lv==="easy"?"😊 ":lv==="medium"?"🤔 ":"🔥 ")+CFG[lv].label;el.className="px-4 py-1.5 rounded-full text-sm font-black ff "+CFG[lv].badge;}
+
+/* BOUNDS — crop canvas to piece bounding box */
+function calcBounds(pieces,cs){
+  var mc=GCOLS,xc=0,mr=GROWS,xr=0;
+  pieces.forEach(function(p){var wh=shapeWH(p.shape);mc=Math.min(mc,p.col);xc=Math.max(xc,p.col+wh[0]);mr=Math.min(mr,p.row);xr=Math.max(xr,p.row+wh[1]);});
+  mc=Math.max(0,mc-1);xc=Math.min(GCOLS,xc+1);mr=Math.max(0,mr-1);xr=Math.min(GROWS,xr+1);
+  return{mc:mc,mr:mr,w:(xc-mc)*cs,h:(xr-mr)*cs};
+}
+
+/* RENDER PREVIEW */
+function renderPreview(pieces){
+  var cs=cellSize(),b=calcBounds(pieces,cs),c=document.getElementById("preview-canvas");
+  c.innerHTML="";c.style.width=b.w+"px";c.style.height=b.h+"px";
+  pieces.forEach(function(piece,i){
+    var el=makeBrick(piece,cs,false);
+    el.style.position="absolute";
+    el.style.left=((piece.col-b.mc)*cs+2)+"px";el.style.top=((piece.row-b.mr)*cs+2)+"px";
+    el.style.animation="bounceIn .4s cubic-bezier(.36,.07,.19,.97) "+(i*0.04)+"s backwards";
+    c.appendChild(el);
+  });
+}
+
+/* RENDER BUILD CANVAS */
+function renderBuildCanvas(pieces){
+  var cs=cellSize(),b=calcBounds(pieces,cs),c=document.getElementById("build-canvas");
+  c.innerHTML="";c.style.width=b.w+"px";c.style.height=b.h+"px";
+  c.dataset.mc=b.mc;c.dataset.mr=b.mr;
+  pieces.forEach(function(piece){
+    var wh=shapeWH(piece.shape),w=wh[0],h=wh[1];
+    var slot=document.createElement("div");slot.className="slot";slot.dataset.for=piece.id;
+    slot.style.cssText="width:"+(w*cs-4)+"px;height:"+(h*cs-4)+"px;"
+      +"left:"+((piece.col-b.mc)*cs+2)+"px;top:"+((piece.row-b.mr)*cs+2)+"px;";
+    c.appendChild(slot);
+  });
+}
+
+/* RENDER TRAY */
+function renderTray(pieces){
+  var cs=cellSize(),tray=document.getElementById("piece-tray");
+  tray.innerHTML="";
+  shuffle(pieces).forEach(function(piece){
+    var el=makeBrick(piece,cs,false);el.style.position="relative";
+    el.addEventListener("pointerdown",function(e){beginDrag(e,piece,null);});
+    tray.appendChild(el);
+  });
+}
+
+/* PROGRESS DOTS */
+function renderDots(n){var c=document.getElementById("prog-dots");c.innerHTML="";for(var i=0;i<n;i++){var d=document.createElement("div");d.className="dot";d.id="dot-"+i;c.appendChild(d);}}
+function refreshDots(){var f=Object.keys(gs.placed).length;for(var i=0;i<gs.pieces.length;i++){var d=document.getElementById("dot-"+i);if(!d)continue;d.className="dot "+(i<f?"done":i===f?"current":"");}}
+
+/* TIMER */
+function startTimer(secs,onEnd){
+  clearInterval(gs.timer);gs.timeLeft=secs;
+  var num=document.getElementById("timer-num"),arc=document.getElementById("timer-arc");
+  function upd(){if(num)num.textContent=gs.timeLeft;if(arc){var p=gs.timeLeft/secs;arc.style.strokeDashoffset=""+(CIRC*(1-p));arc.style.stroke=p>.5?"#00c8ff":p>.25?"#fbbf24":"#f87171";}}
+  upd();
+  gs.timer=setInterval(function(){gs.timeLeft--;upd();if(gs.timeLeft<=0){clearInterval(gs.timer);onEnd();}},1000);
+}
+function stopTimer(){clearInterval(gs.timer);}
+
+/* ═══ DRAG ENGINE — setPointerCapture (reliable on iOS/iPad/mouse) ═══ */
+var drag=null;
+
+function beginDrag(e,piece,sourceSlotId){
+  if(drag)return;
+  e.preventDefault();e.stopPropagation();
+  var el=e.currentTarget;
+
+  /* Floating clone — position using computed cell size so offsetWidth is not needed */
+  var cs=cellSize(),wh=shapeWH(piece.shape),bw=wh[0]*cs-4,bh=wh[1]*cs-4;
+  var cl=makeBrick(piece,cs,false);
+  cl.style.cssText="position:fixed;pointer-events:none;z-index:9999;opacity:.9;"
+    +"width:"+bw+"px;height:"+bh+"px;"
+    +"transform:scale(1.1) rotate(2deg);transition:none;will-change:left,top;";
+  document.body.appendChild(cl);
+
+  drag={piece:piece,clone:cl,el:el,sourceSlotId:sourceSlotId,bw:bw,bh:bh};
+
+  /* Hide source in-place (keep in DOM so setPointerCapture stays valid) */
+  el.style.visibility="hidden";el.style.pointerEvents="none";
+
+  _moveClone(e.clientX,e.clientY);
+
+  /* setPointerCapture: all pointer events routed to el even if finger moves away */
+  try{el.setPointerCapture(e.pointerId);}catch(err){}
+
+  el.addEventListener("pointermove",_dragMove,{passive:false});
+  el.addEventListener("pointerup",_dragEnd,{passive:false});
+  el.addEventListener("pointercancel",_dragEnd,{passive:false});
+}
+
+function _moveClone(x,y){
+  if(!drag)return;
+  drag.clone.style.left=(x-drag.bw/2)+"px";
+  drag.clone.style.top=(y-drag.bh/2)+"px";
+}
+
+function _dragMove(e){
+  e.preventDefault();
+  _moveClone(e.clientX,e.clientY);
+  document.querySelectorAll("#build-canvas .slot").forEach(function(s){
+    var r=s.getBoundingClientRect();
+    s.classList.toggle("over",
+      e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom);
+  });
+}
+
+function _dragEnd(e){
+  e.preventDefault();
+  var el=drag.el,piece=drag.piece,sourceSlotId=drag.sourceSlotId;
+
+  el.removeEventListener("pointermove",_dragMove);
+  el.removeEventListener("pointerup",_dragEnd);
+  el.removeEventListener("pointercancel",_dragEnd);
+
+  drag.clone.remove();
+  document.querySelectorAll("#build-canvas .slot.over").forEach(function(s){s.classList.remove("over");});
+  drag=null;
+
+  /* Find drop target */
+  var target=null;
+  document.querySelectorAll("#build-canvas .slot").forEach(function(s){
+    var r=s.getBoundingClientRect();
+    if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)target=s;
+  });
+
+  /* Now commit: remove from source */
+  if(sourceSlotId!==null){
+    var os=document.querySelector("#build-canvas [data-for='"+sourceSlotId+"']");
+    if(os){os.innerHTML="";os.classList.remove("done");}
+    delete gs.placed[sourceSlotId];refreshDots();
+  } else {
+    el.remove(); /* remove hidden tray element now that pointer is released */
+  }
+
+  if(target) placePiece(piece,target);
+  else       returnToTray(piece.id);
+}
+
+/* PLACE PIECE */
+function placePiece(piece,slot){
+  /* evict whatever is already in the target slot */
+  if(slot.classList.contains("done")){
+    var evictId=gs.placed[slot.dataset.for];
+    if(evictId){slot.innerHTML="";slot.classList.remove("done");delete gs.placed[slot.dataset.for];refreshDots();returnToTray(evictId);}
+  }
+  var cs=cellSize(),bEl=makeBrick(piece,cs,false);
+  bEl.classList.add("placed");
+  var sfid=slot.dataset.for;
+  bEl.addEventListener("pointerdown",function(e){beginDrag(e,piece,sfid);});
+  slot.appendChild(bEl);slot.classList.add("done");
+  gs.placed[sfid]=piece.id;refreshDots();
+  if(Object.keys(gs.placed).length===gs.pieces.length)setTimeout(checkAnswer,350);
+}
+function returnToTray(pid){
+  var piece=gs.pieces.find(function(p){return p.id===pid;});if(!piece)return;
+  var tray=document.getElementById("piece-tray");if(tray.querySelector("[data-id='"+pid+"']"))return;
+  var cs=cellSize(),el=makeBrick(piece,cs,false);el.style.position="relative";
+  el.addEventListener("pointerdown",function(e){beginDrag(e,piece,null);});
+  tray.appendChild(el);
+}
+
+/* HINT — reveals 1 random unplaced piece */
+function useHint(){
+  if(gs.hintsLeft<=0)return;
+  /* pick a piece that hasn't been placed correctly yet */
+  var unplaced=gs.pieces.filter(function(p){return gs.placed[p.id]!==p.id;});
+  if(!unplaced.length)return;
+  gs.hintsLeft--;
+  var btn=document.getElementById("hint-btn");
+  var piece=unplaced[Math.floor(Math.random()*unplaced.length)];
+  var canvas=document.getElementById("build-canvas"),cs=cellSize();
+  var mc=parseInt(canvas.dataset.mc)||0,mr=parseInt(canvas.dataset.mr)||0;
+  var wh=shapeWH(piece.shape),w=wh[0],h=wh[1];
+  /* show a ghost with the actual piece color so user sees shape + color */
+  var g=makeBrick(piece,cs,false);
+  g.style.position="absolute";
+  g.style.left=((piece.col-mc)*cs+2)+"px";
+  g.style.top=((piece.row-mr)*cs+2)+"px";
+  g.style.opacity="0.65";
+  g.style.pointerEvents="none";
+  g.style.zIndex="10";
+  g.style.animation="shimmer .7s ease 5";
+  g.style.transition="opacity .3s";
+  canvas.appendChild(g);
+  setTimeout(function(){g.remove();},3500);
+  if(gs.hintsLeft<=0){btn.disabled=true;btn.style.opacity=".35";btn.textContent="💡 Hết gợi ý";}
+  else{btn.disabled=false;btn.style.opacity="1";btn.textContent="💡 Gợi ý (còn "+gs.hintsLeft+" lần)";}
+}
+
+/* CHECK */
+function checkAnswer(){
+  stopTimer();var correct=0;
+  gs.pieces.forEach(function(piece){
+    var slot=document.querySelector("[data-for='"+piece.id+"']");if(!slot)return;
+    var bEl=slot.querySelector(".brick");
+    if(gs.placed[piece.id]===piece.id){correct++;slot.classList.add("ok");if(bEl)bEl.classList.add("anim-ok");}
+    else{slot.classList.add("fail");if(bEl)bEl.classList.add("anim-fail");}
+  });
+  var total=gs.pieces.length,ratio=correct/total;
+  /* snapshot placement before any state changes */
+  gs.snapshot=JSON.parse(JSON.stringify(gs.placed));
+  setTimeout(function(){showResult(correct,total,ratio);},750);
+}
+
+/* RESULT */
+function showResult(correct,total,ratio){
+  var e,t,m;
+  if(ratio===1){e="🎉";t="Tuyệt vời!";m="Lắp hoàn hảo! "+correct+"/"+total+" mảnh đúng!";}
+  else if(ratio>=.75){e="⭐";t="Giỏi lắm!";m="Gần đúng hết rồi! "+correct+"/"+total+" mảnh đúng!";}
+  else if(ratio>=.5){e="😊";t="Cố lên!";m="Luyện thêm nhé! "+correct+"/"+total+" mảnh đúng!";}
+  else{e="😅";t="Thử lại!";m="Quan sát kỹ hơn nha! "+correct+"/"+total+" mảnh đúng!";}
+  document.getElementById("ri-emoji").textContent=e;
+  document.getElementById("ri-title").textContent=t;
+  document.getElementById("ri-msg").textContent=m;
+  var se=document.getElementById("ri-stars");se.innerHTML="";
+  var stars=ratio===1?3:ratio>=.75?2:ratio>=.5?1:0;
+  for(var i=0;i<3;i++){var s=document.createElement("span");s.className="star text-3xl";s.textContent=i<stars?"⭐":"☆";s.style.filter=i<stars?"":"grayscale(1) opacity(.3)";se.appendChild(s);}
+  if(ratio===1)launchConfetti();
+  document.getElementById("modal-result").classList.remove("hidden");
+}
+
+/* ANSWER — side-by-side: correct vs user's placement */
+function showAnswer(){
+  /* use smaller cell so both canvases fit side by side inside the modal */
+  var cs=Math.min(cellSize(),Math.floor(130/GCOLS));
+  var b=calcBounds(gs.pieces,cs);
+
+  /* build a lookup: slotId (=pieceId) → piece object */
+  var pieceById={};
+  gs.pieces.forEach(function(p){pieceById[p.id]=p;});
+
+  /* ── correct answer ── */
+  var cc=document.getElementById("answer-correct");
+  cc.innerHTML="";cc.style.width=b.w+"px";cc.style.height=b.h+"px";
+  gs.pieces.forEach(function(piece){
+    var el=makeBrick(piece,cs,false);
+    el.style.position="absolute";
+    el.style.left=((piece.col-b.mc)*cs+2)+"px";
+    el.style.top=((piece.row-b.mr)*cs+2)+"px";
+    cc.appendChild(el);
+  });
+
+  /* ── user's placement ── */
+  var cy=document.getElementById("answer-yours");
+  cy.innerHTML="";cy.style.width=b.w+"px";cy.style.height=b.h+"px";
+  /* snapshot: {slotId: placedPieceId} — slot positions match correct piece positions */
+  gs.pieces.forEach(function(correctPiece){
+    var placedPieceId=gs.snapshot[correctPiece.id];
+    if(!placedPieceId)return; /* empty slot */
+    var placedPiece=pieceById[placedPieceId];
+    if(!placedPiece)return;
+    /* render placed piece color at the SLOT position (correctPiece's position) */
+    var el=makeBrick(placedPiece,cs,false);
+    el.style.position="absolute";
+    el.style.left=((correctPiece.col-b.mc)*cs+2)+"px";
+    el.style.top=((correctPiece.row-b.mr)*cs+2)+"px";
+    /* highlight correct vs wrong */
+    if(placedPieceId===correctPiece.id){
+      el.style.outline="2px solid #4ade80";
+      el.style.outlineOffset="1px";
+    } else {
+      el.style.outline="2px solid #f87171";
+      el.style.outlineOffset="1px";
+      el.style.opacity="0.75";
+    }
+    cy.appendChild(el);
+  });
+
+  document.getElementById("modal-answer").classList.remove("hidden");
+}
+function closeAnswer(){document.getElementById("modal-answer").classList.add("hidden");}
+
+/* CONFETTI */
+var CF=["#e3000b","#006cb7","#f7d117","#00a850","#f47b20","#9c27b0","#00aec7","#e91e8c"];
+function launchConfetti(){var box=document.getElementById("confetti");box.innerHTML="";for(var i=0;i<80;i++){var p=document.createElement("div");p.className="cf";p.style.cssText="left:"+rand(3,97)+"vw;width:"+rand(8,14)+"px;height:"+rand(10,18)+"px;background:"+pick(CF)+";animation-duration:"+rand(18,34)/10+"s;animation-delay:"+rand(0,10)/10+"s;border-radius:"+(rand(0,1)?"50%":"3px")+";";box.appendChild(p);}setTimeout(function(){box.innerHTML="";},5500);}
+
+/* GAME FLOW */
+function startLevel(lv){gs.level=lv;startGame();}
+function replayLevel(){document.getElementById("modal-result").classList.add("hidden");startGame();}
+function startGame(){
+  gs.placed={};gs.hintsLeft=CFG[gs.level].hints;
+  gs.pieces=generatePieces(CFG[gs.level].count);
+  stopTimer();setBadge("badge-prev",gs.level);
+  renderPreview(gs.pieces);showScreen("screen-preview");
+  var hb=document.getElementById("hint-btn");hb.disabled=false;hb.style.opacity="1";hb.textContent="💡 Gợi ý (còn "+gs.hintsLeft+" lần)";
+  startTimer(CFG[gs.level].time,startBuild);
+}
+function startBuild(){stopTimer();showScreen("screen-build");setBadge("badge-build",gs.level);renderBuildCanvas(gs.pieces);renderTray(gs.pieces);renderDots(gs.pieces.length);refreshDots();}
+function goHome(){stopTimer();document.getElementById("modal-result").classList.add("hidden");document.getElementById("modal-answer").classList.add("hidden");showScreen("screen-home");}
+
+window.startLevel=startLevel;window.goHome=goHome;window.checkAnswer=checkAnswer;window.useHint=useHint;window.startBuild=startBuild;window.showAnswer=showAnswer;window.closeAnswer=closeAnswer;window.replayLevel=replayLevel;
+}());
+</script>
+</body>
+</html>
