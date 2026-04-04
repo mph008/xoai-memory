@@ -85,19 +85,19 @@
     <button onclick="startLevel('easy')" class="lv-card rounded-2xl p-5 shadow-xl border-2 border-cyan-400/50 bg-gradient-to-br from-cyan-600/15 to-cyan-900/25">
       <div class="text-4xl mb-3">😊</div>
       <div class="text-cyan-300 font-black text-xl ff">Dễ</div>
-      <div class="text-white/80 text-sm mt-1 font-bold">6 mảnh · 15 giây</div>
+      <div class="text-white/80 text-sm mt-1 font-bold">6 mảnh · 30 giây</div>
       <div class="text-white/45 text-xs mt-1">2 gợi ý mỗi ván</div>
     </button>
     <button onclick="startLevel('medium')" class="lv-card rounded-2xl p-5 shadow-xl border-2 border-amber-400/50 bg-gradient-to-br from-amber-500/15 to-orange-900/25">
       <div class="text-4xl mb-3">🤔</div>
       <div class="text-yellow-300 font-black text-xl ff">Trung Bình</div>
-      <div class="text-white/80 text-sm mt-1 font-bold">8 mảnh · 15 giây</div>
+      <div class="text-white/80 text-sm mt-1 font-bold">8 mảnh · 25 giây</div>
       <div class="text-white/45 text-xs mt-1">2 gợi ý mỗi ván</div>
     </button>
     <button onclick="startLevel('hard')" class="lv-card rounded-2xl p-5 shadow-xl border-2 border-red-500/50 bg-gradient-to-br from-red-700/20 to-red-950/30">
       <div class="text-4xl mb-3">🔥</div>
       <div class="text-red-400 font-black text-xl ff">Khó</div>
-      <div class="text-white/80 text-sm mt-1 font-bold">10 mảnh · 15 giây</div>
+      <div class="text-white/80 text-sm mt-1 font-bold">10 mảnh · 25 giây</div>
       <div class="text-white/45 text-xs mt-1">2 gợi ý mỗi ván</div>
     </button>
   </div>
@@ -201,9 +201,9 @@
 
 /* CONFIG */
 var CFG={
-  easy:  {count:6, time:15,hints:2,label:"Dễ",       badge:"bg-cyan-600/25   text-cyan-300   border border-cyan-400/40"},
-  medium:{count:8, time:15,hints:2,label:"Trung Bình",badge:"bg-yellow-500/30 text-yellow-300 border border-yellow-400/40"},
-  hard:  {count:10,time:15,hints:2,label:"Khó",       badge:"bg-red-500/30    text-red-300    border border-red-400/40"},
+  easy:  {count:6, time:30,hints:2,label:"Dễ",       badge:"bg-cyan-600/25   text-cyan-300   border border-cyan-400/40"},
+  medium:{count:8, time:25,hints:2,label:"Trung Bình",badge:"bg-yellow-500/30 text-yellow-300 border border-yellow-400/40"},
+  hard:  {count:10,time:25,hints:2,label:"Khó",       badge:"bg-red-500/30    text-red-300    border border-red-400/40"},
 };
 var GCOLS=6,GROWS=5,CIRC=2*Math.PI*42;
 var COLORS=["cl-red","cl-blue","cl-yellow","cl-green","cl-orange","cl-purple","cl-cyan","cl-pink","cl-lime","cl-brown","cl-teal","cl-navy"];
